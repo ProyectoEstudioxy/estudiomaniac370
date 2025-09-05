@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Gestión - Agencia Digital</title>
+    <!-- Tailwind CSS para un diseño moderno y adaptable -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts para una tipografía limpia -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Iconos de Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Librerías para exportar a PDF y PNG -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Plugin para autotablas en jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilo para la barra de desplazamiento */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6366f1;
+        }
+        .nav-link.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        #connection-status {
+            transition: background-color 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex flex-col h-screen">
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Barra de Navegación Lateral -->
+        <aside class="w-64 bg-gray-800 p-6 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center gap-3 mb-10">
+                    <i class="ph ph-sparkle text-3xl text-indigo-400"></i>
+                    <h1 class="text-xl font-bold text-white">LOGY MANAGER AGENCIA</h1>
+                </div>
+                <nav class="flex flex-col gap-3">
+                    <a href="#" id="nav-alta" class="nav-link active flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <i class="ph-fill ph-user-plus text-lg"></i>
+                        <span>Alta de Clientes</span>
+                    </a>
+                    <a href="#" id="nav-contratos" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <i class="ph-fill ph-files text-lg"></i>
+                        <span>Seguimiento Contratos</span>
+                    </a>
+                    <a href="#" id="nav-comunicaciones" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <i class="ph-fill ph-chats-circle text-lg"></i>
+                        <span>Comunicaciones</span>
+                    </a>
+                    <a href="#" id="nav-stock" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <i class="ph-fill ph-package text-lg"></i>
+                        <span>Manejo de Stock</span>
+                    </a>
+                    <a href="#" id="nav-modelo" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <i class="ph-fill ph-file-text text-lg"></i>
+                        <span>Modelo de Contrato</span>
+                    </a>
+                    <a href="#" id="nav-registro" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <i class="ph-fill ph-database text-lg"></i>
+                        <span>Registro de Contratos</span>
+                    </a>
+                    <a href="#" id="nav-credenciales" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <i class="ph-fill ph-identification-card text-lg"></i>
+                        <span>Credenciales</span>
+                    </a>
+                    <a href="#" id="nav-capacitaciones" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <i class="ph-fill ph-student text-lg"></i>
+                        <span>Capacitaciones</span>
+                    </a>
+                    <a href="#" id="nav-archivos" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <i class="ph-fill ph-folder text-lg"></i>
+                        <span>Archivos</span>
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            <datalist id="clientes-datalist"></datalist>
+            
+            <!-- SECCIÓN: ALTA DE CLIENTES -->
+            <div id="content-alta" class="space-y-8">
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3"><i class="ph ph-user-plus text-indigo-400"></i>Gestión de Clientes</h2>
+                <form id="form-alta-cliente" class="bg-gray-800 p-8 rounded-xl shadow-lg grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <input type="hidden" id="cliente-edit-id">
+                    <div class="col-span-1">
+                        <label for="nombre" class="block text-sm font-medium text-gray-300 mb-2">Nombre / Razón Social</label>
+                        <input type="text" id="nombre" name="nombre" placeholder="Ej: Juan Pérez o Empresa S.A." class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition" required>
+                    </div>
+                    <div class="col-span-1">
+                        <label for="tipo_cliente" class="block text-sm font-medium text-gray-300 mb-2">Tipo de Cliente</label>
+                        <select id="tipo_cliente" name="tipo_cliente" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                            <option>Creador Digital</option>
+                            <option>Franquicia</option>
+                            <option>Influencer</option>
+                            <option>Otro</option>
+                        </select>
+                    </div>
+                    <div class="col-span-1">
+                        <label for="contacto" class="block text-sm font-medium text-gray-300 mb-2">Persona de Contacto</label>
+                        <input type="text" id="contacto" name="contacto" placeholder="Nombre del contacto principal" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                    <div class="col-span-1">
+                        <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                        <input type="email" id="email" name="email" placeholder="contacto@ejemplo.com" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                    <div class="col-span-1">
+                        <label for="telefono" class="block text-sm font-medium text-gray-300 mb-2">Teléfono</label>
+                        <input type="tel" id="telefono" name="telefono" placeholder="+54 9 11 1234-5678" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                     <div class="col-span-1">
+                        <label for="redes" class="block text-sm font-medium text-gray-300 mb-2">Redes Sociales / Website</label>
+                        <input type="text" id="redes" name="redes" placeholder="@usuario o www.sitio.com" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                    <div class="col-span-1">
+                        <label for="tema" class="block text-sm font-medium text-gray-300 mb-2">Tema</label>
+                        <input type="text" id="tema" name="tema" placeholder="Ej: Gaming, Moda, Gastronomía" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                    <div class="col-span-1">
+                        <label for="actividad_economica" class="block text-sm font-medium text-gray-300 mb-2">Actividad Económica</label>
+                        <input type="text" id="actividad_economica" name="actividad_economica" placeholder="Ej: Monotributista, Responsable Inscripto" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                    <div class="col-span-2">
+                        <label for="notas" class="block text-sm font-medium text-gray-300 mb-2">Notas Adicionales</label>
+                        <textarea id="notas" name="notas" rows="4" placeholder="Cualquier información relevante sobre el cliente..." class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"></textarea>
+                    </div>
+                    <div class="col-span-2 text-right">
+                        <button type="submit" id="btn-submit-cliente" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg">
+                            Agregar Cliente
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="comprobante-container" class="hidden mt-8 space-y-6">
+                    <h3 class="text-xl font-bold text-white border-b border-gray-700 pb-3">Acuse de Inscripción Generado</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                        <!-- Comprobante Visual -->
+                        <div>
+                            <div id="comprobante-visual" class="bg-white text-gray-800 p-8 rounded-lg shadow-lg">
+                                <!-- El contenido se inyectará aquí -->
+                            </div>
+                            <div class="mt-4 flex gap-3">
+                                <button id="btn-export-comprobante-png" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg text-sm"><i class="ph ph-image mr-1"></i>Exportar PNG</button>
+                                <button id="btn-export-comprobante-pdf" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm"><i class="ph ph-file-pdf mr-1"></i>Exportar PDF</button>
+                            </div>
+                        </div>
+                        <!-- Texto para compartir -->
+                        <div>
+                             <label for="texto-compartir-alta" class="block text-sm font-medium text-gray-300 mb-2">Texto de Bienvenida para WhatsApp / Mail</label>
+                             <textarea id="texto-compartir-alta" rows="10" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2" readonly></textarea>
+                             <button id="btn-copiar-texto-alta" class="mt-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg w-full text-sm"><i class="ph ph-copy mr-1"></i>Copiar Texto</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden mt-8">
+                    <div class="p-6 flex justify-between items-center">
+                        <h3 class="text-xl font-bold text-white">Clientes Registrados</h3>
+                        <div class="flex gap-3">
+                            <button id="btn-export-excel-clientes" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-sm"><i class="ph ph-file-csv mr-2"></i>Exportar a Excel</button>
+                            <button id="btn-export-pdf-clientes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm"><i class="ph ph-file-pdf mr-2"></i>Exportar a PDF</button>
+                        </div>
+                    </div>
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="p-4 font-semibold">Nombre</th>
+                                <th class="p-4 font-semibold">Tipo</th>
+                                <th class="p-4 font-semibold">Email</th>
+                                <th class="p-4 font-semibold">Teléfono</th>
+                                <th class="p-4 font-semibold text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-clientes">
+                            <!-- Los clientes se listarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- SECCIÓN: SEGUIMIENTO DE CONTRATOS -->
+            <div id="content-contratos" class="hidden space-y-8">
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3"><i class="ph ph-files text-indigo-400"></i>Seguimiento de Comunicaciones y Contratos</h2>
+                
+                <!-- Formulario para agregar seguimiento -->
+                <form id="form-add-seguimiento-contrato" class="bg-gray-800 p-8 rounded-xl shadow-lg grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                    <div>
+                        <label for="contrato-cliente" class="block text-sm font-medium text-gray-300 mb-2">Cliente</label>
+                        <select id="contrato-cliente" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"></select>
+                    </div>
+                    <div>
+                        <label for="comunicacion-fecha" class="block text-sm font-medium text-gray-300 mb-2">Fecha</label>
+                        <input type="date" id="comunicacion-fecha" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label for="comunicacion-resumen" class="block text-sm font-medium text-gray-300 mb-2">Resumen de la Comunicación</label>
+                        <input type="text" id="comunicacion-resumen" placeholder="Se envió borrador..." class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                    <div class="col-span-full text-right">
+                         <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg">
+                            Agregar Seguimiento
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Tabla de seguimientos -->
+                <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="p-4 font-semibold">Cliente / Contrato</th>
+                                <th class="p-4 font-semibold">Fecha</th>
+                                <th class="p-4 font-semibold">Resumen</th>
+                                <th class="p-4 font-semibold">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-seguimientos">
+                           
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: COMUNICACIONES -->
+            <div id="content-comunicaciones" class="hidden space-y-8">
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3"><i class="ph ph-chats-circle text-indigo-400"></i>Comunicación con Clientes y Talentos</h2>
+                
+                <!-- Formulario para agregar comunicación -->
+                <form id="form-add-comunicacion" class="bg-gray-800 p-8 rounded-xl shadow-lg space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="com-tipo" class="block text-sm font-medium text-gray-300 mb-2">Tipo de Contacto</label>
+                            <select id="com-tipo" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                                <option>Creador Digital</option>
+                                <option>Influencer</option>
+                                <option>Franquiciado</option>
+                                <option>Franquiciante</option>
+                                <option>Otro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="com-destinatario" class="block text-sm font-medium text-gray-300 mb-2">Destinatario (Nombre)</label>
+                            <input type="text" id="com-destinatario" list="clientes-datalist" placeholder="Seleccione o escriba un nombre" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="com-archivo-mail" class="block text-sm font-medium text-gray-300 mb-2">Email donde se archiva</label>
+                        <input type="email" id="com-archivo-mail" placeholder="ej: seguimiento@logyagencia.com" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label for="com-detalle" class="block text-sm font-medium text-gray-300 mb-2">Detalle de la Comunicación</label>
+                        <textarea id="com-detalle" rows="4" placeholder="Detallar el motivo, tema, o mensaje de la comunicación..." class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"></textarea>
+                    </div>
+                    <div class="text-right">
+                         <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg">
+                            Registrar Comunicación Realizada
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Tabla de comunicaciones -->
+                <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="p-4 font-semibold">Fecha</th>
+                                <th class="p-4 font-semibold">Tipo</th>
+                                <th class="p-4 font-semibold">Destinatario</th>
+                                <th class="p-4 font-semibold">Mail Archivo</th>
+                                <th class="p-4 font-semibold">Detalle</th>
+                                <th class="p-4 font-semibold">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-comunicaciones">
+                            
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Botones de Resumen y Exportación -->
+                <div class="mt-8 space-y-4">
+                     <div class="flex flex-wrap justify-end gap-3">
+                        <button id="btn-imprimir-comunicaciones" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg"><i class="ph ph-printer mr-2"></i>Imprimir Informe</button>
+                        <button id="btn-generar-resumen-comunicaciones-texto" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg"><i class="ph ph-text-align-left mr-2"></i>Generar Resumen para Copiar</button>
+                        <button id="btn-export-excel-comunicaciones" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg"><i class="ph ph-file-csv mr-2"></i>Exportar a Excel (CSV)</button>
+                        <button id="btn-export-pdf-comunicaciones" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg"><i class="ph ph-file-pdf mr-2"></i>Exportar a PDF</button>
+                    </div>
+                    <!-- Contenedor para el resumen de texto -->
+                    <div id="resumen-comunicaciones-texto-container" class="hidden mt-4">
+                        <label for="resumen-comunicaciones-texto" class="block text-sm font-medium text-gray-300 mb-2">Resumen para Copiar</label>
+                        <textarea id="resumen-comunicaciones-texto" rows="10" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2" readonly></textarea>
+                        <button id="btn-copy-comunicaciones-summary" class="mt-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg w-full"><i class="ph ph-copy mr-1"></i>Copiar Resumen</button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- SECCIÓN: MANEJO DE STOCK -->
+            <div id="content-stock" class="hidden space-y-8">
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3"><i class="ph ph-package text-indigo-400"></i>Control de Stock de Mercadería</h2>
+                
+                 <!-- Formulario para agregar producto -->
+                <form id="form-add-stock" class="bg-gray-800 p-8 rounded-xl shadow-lg space-y-6">
+                    <input type="hidden" id="stock-edit-id">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                        <h3 class="col-span-full text-lg font-semibold text-indigo-300 border-b border-gray-700 pb-2 mb-2">Información del Cliente</h3>
+                        <div>
+                            <label for="stock-cliente-nombre" class="block text-sm font-medium text-gray-300 mb-2">Nombre del Cliente</label>
+                            <select id="stock-cliente-nombre" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"></select>
+                        </div>
+                         <div>
+                            <label for="stock-cliente-mail" class="block text-sm font-medium text-gray-300 mb-2">Mail del Cliente</label>
+                            <input type="email" id="stock-cliente-mail" placeholder="contacto@marca.com" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                        </div>
+
+                        <h3 class="col-span-full text-lg font-semibold text-indigo-300 border-b border-gray-700 pb-2 mt-4 mb-2">Información del Destinatario</h3>
+                        <div>
+                            <label for="stock-destinatario-tipo" class="block text-sm font-medium text-gray-300 mb-2">Tipo de Destinatario</label>
+                             <select id="stock-destinatario-tipo" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                                <option>Influencer</option>
+                                <option>Creador Digital</option>
+                                <option>Franquiciante</option>
+                                <option>Franquiciado</option>
+                                <option>Otro</option>
+                            </select>
+                        </div>
+                        <div></div>
+                        <div>
+                            <label for="stock-destinatario-nombre" class="block text-sm font-medium text-gray-300 mb-2">Nombre del Destinatario</label>
+                            <input type="text" id="stock-destinatario-nombre" placeholder="Para Influencer 'X'" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                        </div>
+                        <div>
+                            <label for="stock-destinatario-mail" class="block text-sm font-medium text-gray-300 mb-2">Mail del Destinatario</label>
+                            <input type="email" id="stock-destinatario-mail" placeholder="influencer@ejemplo.com" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                        </div>
+                        
+                        <h3 class="col-span-full text-lg font-semibold text-indigo-300 border-b border-gray-700 pb-2 mt-4 mb-2">Detalle del Producto</h3>
+                         <div>
+                            <label for="stock-producto" class="block text-sm font-medium text-gray-300 mb-2">Producto</label>
+                            <input type="text" id="stock-producto" placeholder="Ej: Camiseta Talle M" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                        </div>
+                        <div>
+                            <label for="stock-cantidad" class="block text-sm font-medium text-gray-300 mb-2">Cantidad</label>
+                            <input type="number" id="stock-cantidad" min="1" value="1" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="stock-tipo-movimiento" class="block text-sm font-medium text-gray-300 mb-2">Tipo de Movimiento</label>
+                            <select id="stock-tipo-movimiento" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                                <option>Venta</option>
+                                <option>Canje</option>
+                                <option>Promoción</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="text-right pt-4">
+                         <button type="submit" id="btn-submit-stock" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg w-full md:w-auto">
+                            Agregar al Stock
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Tabla de stock -->
+                <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="p-4 font-semibold">Producto</th>
+                                <th class="p-4 font-semibold">Cantidad</th>
+                                <th class="p-4 font-semibold">Tipo</th>
+                                <th class="p-4 font-semibold">Cliente</th>
+                                <th class="p-4 font-semibold">Destinatario</th>
+                                <th class="p-4 font-semibold text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-stock">
+                             <!-- Las filas se agregarán dinámicamente aquí -->
+                        </tbody>
+                    </table>
+                </div>
+                 <!-- Botones de Resumen y Exportación -->
+                <div class="mt-8 space-y-4">
+                     <div class="flex flex-wrap justify-end gap-3">
+                        <button id="btn-generar-resumen-stock-texto" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"><i class="ph ph-text-align-left mr-2"></i>Generar Resumen para Copiar</button>
+                        <button id="btn-export-excel-stock" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"><i class="ph ph-file-csv mr-2"></i>Exportar a Excel (CSV)</button>
+                        <button id="btn-export-pdf-stock" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"><i class="ph ph-file-pdf mr-2"></i>Exportar a PDF</button>
+                    </div>
+                    <!-- Contenedor para el resumen de texto -->
+                    <div id="resumen-stock-texto-container" class="hidden mt-4">
+                        <label for="resumen-stock-texto" class="block text-sm font-medium text-gray-300 mb-2">Resumen para Copiar</label>
+                        <textarea id="resumen-stock-texto" rows="10" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2" readonly></textarea>
+                        <button id="btn-copy-stock-summary" class="mt-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg w-full transition-transform transform hover:scale-105"><i class="ph ph-copy mr-1"></i>Copiar Resumen</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: MODELO DE CONTRATO -->
+            <div id="content-modelo" class="hidden space-y-8">
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3"><i class="ph ph-file-text text-indigo-400"></i>Generador de Modelos de Contrato</h2>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Columna del Formulario -->
+                    <form id="form-generar-contrato" class="bg-gray-800 p-8 rounded-xl shadow-lg space-y-6">
+                        <h3 class="text-xl font-bold text-white border-b border-gray-700 pb-3 mb-4">Detalles del Acuerdo</h3>
+
+                        <!-- Partes y Tipo de Contrato -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div>
+                                <label for="contrato-nombre-cliente" class="block text-sm font-medium text-gray-300 mb-2">Nombre Completo del Cliente</label>
+                                <select id="contrato-nombre-cliente" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"></select>
+                            </div>
+                             <div>
+                                <label for="contrato-nombre-agencia" class="block text-sm font-medium text-gray-300 mb-2">Representante de la Agencia</label>
+                                <input type="text" id="contrato-nombre-agencia" placeholder="Ej: Maria Rodriguez" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label for="contrato-tipo-cliente" class="block text-sm font-medium text-gray-300 mb-2">Tipo de Cliente</label>
+                                <select id="contrato-tipo-cliente" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                                    <option>Influencer</option>
+                                    <option>Creador de Contenido</option>
+                                    <option>Franquicia</option>
+                                    <option>Franquiciado</option>
+                                    <option>Franquiciante</option>
+                                    <option>Otro</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="contrato-tipo-acuerdo" class="block text-sm font-medium text-gray-300 mb-2">Tipo de Acuerdo</label>
+                                <select id="contrato-tipo-acuerdo" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                                    <option>Monetario</option>
+                                    <option>Canje</option>
+                                    <option>Servicios</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Detalles Financieros -->
+                        <div class="border-t border-gray-700 pt-6 space-y-4">
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="contrato-inversion" class="block text-sm font-medium text-gray-300 mb-2">Inversión Inicial ($)</label>
+                                    <input type="number" id="contrato-inversion" placeholder="0.00" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition financial-input">
+                                </div>
+                                <div>
+                                    <label for="contrato-anticipo" class="block text-sm font-medium text-gray-300 mb-2">Anticipo Requerido ($)</label>
+                                    <input type="number" id="contrato-anticipo" placeholder="0.00" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                                </div>
+                                <div>
+                                    <label for="contrato-cuotas-cantidad" class="block text-sm font-medium text-gray-300 mb-2">Cantidad de Cuotas</label>
+                                    <input type="number" id="contrato-cuotas-cantidad" placeholder="0" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition financial-input">
+                                </div>
+                                 <div>
+                                    <label for="contrato-cuota-monto" class="block text-sm font-medium text-gray-300 mb-2">Monto de la Cuota ($)</label>
+                                    <input type="number" id="contrato-cuota-monto" placeholder="0.00" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition financial-input">
+                                </div>
+                                  <div>
+                                    <label for="contrato-subtotal" class="block text-sm font-medium text-gray-400 mb-2">Subtotal Cuotas ($)</label>
+                                    <input type="text" id="contrato-subtotal" class="w-full bg-gray-900 border border-gray-700 text-gray-400 rounded-lg px-4 py-2" readonly>
+                                </div>
+                                <div>
+                                    <label for="contrato-bonificacion" class="block text-sm font-medium text-gray-300 mb-2">Bonificación ($)</label>
+                                    <input type="number" id="contrato-bonificacion" placeholder="0.00" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition financial-input">
+                                </div>
+                            </div>
+                            <div class="bg-gray-900 p-4 rounded-lg text-center">
+                                <label class="block text-sm font-medium text-gray-400 mb-1">TOTAL ACUERDO</label>
+                                <p id="contrato-total" class="text-3xl font-bold text-indigo-400">$0.00</p>
+                            </div>
+                        </div>
+
+                         <!-- Cláusulas -->
+                        <div class="border-t border-gray-700 pt-6 space-y-4">
+                             <div>
+                                <label for="contrato-comision" class="block text-sm font-medium text-gray-300 mb-2">Porcentaje de Agencia (%)</label>
+                                <input type="number" id="contrato-comision" placeholder="Ej: 20" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label for="contrato-tribunales" class="block text-sm font-medium text-gray-300 mb-2">Jurisdicción (Tribunales)</label>
+                                <input type="text" id="contrato-tribunales" placeholder="Ej: Tribunales Ordinarios de la Capital Federal" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                            </div>
+                             <div>
+                                <label for="contrato-auditoria" class="block text-sm font-medium text-gray-300 mb-2">Período de Auditoría</label>
+                                <input type="text" id="contrato-auditoria" placeholder="Ej: Anual, a cargo de Estudio Contable XYZ" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                            </div>
+                            <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="contrato-fecha-inicio" class="block text-sm font-medium text-gray-300 mb-2">Fecha de Inicio</label>
+                                    <input type="date" id="contrato-fecha-inicio" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                                </div>
+                                <div>
+                                    <label for="contrato-fecha-vencimiento" class="block text-sm font-medium text-gray-300 mb-2">Fecha de Vencimiento</label>
+                                    <input type="date" id="contrato-fecha-vencimiento" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-right pt-4">
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg w-full">
+                                Generar Borrador de Contrato
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Columna del Contrato Generado -->
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-lg">
+                         <h3 class="text-xl font-bold text-white border-b border-gray-700 pb-3 mb-4">Borrador del Contrato</h3>
+                         <div id="contrato-generado-container" class="bg-gray-900 p-4 rounded-lg h-full min-h-[400px]">
+                            <pre id="contrato-generado" class="text-sm text-gray-300 whitespace-pre-wrap font-sans">Aguardando la generación del contrato...</pre>
+                         </div>
+                         <div id="contrato-actions" class="hidden mt-4 flex justify-end gap-3">
+                            <button id="btn-print-contrato" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-sm transition-transform transform hover:scale-105"><i class="ph ph-printer mr-1"></i>Imprimir</button>
+                            <button id="btn-pdf-contrato" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm transition-transform transform hover:scale-105"><i class="ph ph-file-pdf mr-1"></i>Exportar PDF</button>
+                            <button id="btn-word-contrato" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded-lg text-sm transition-transform transform hover:scale-105"><i class="ph ph-file-doc mr-1"></i>Exportar Word</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: REGISTRO DE CONTRATOS -->
+            <div id="content-registro" class="hidden space-y-8">
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3"><i class="ph ph-database text-indigo-400"></i>Registro de Contratos Generados</h2>
+                
+                <div class="flex justify-end gap-3">
+                    <button id="btn-export-excel-registro" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"><i class="ph ph-file-csv mr-2"></i>Exportar a Excel (CSV)</button>
+                    <button id="btn-export-pdf-registro" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"><i class="ph ph-file-pdf mr-2"></i>Exportar a PDF</button>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="p-4 font-semibold">N° Contrato</th>
+                                <th class="p-4 font-semibold">Cliente</th>
+                                <th class="p-4 font-semibold">Fecha</th>
+                                <th class="p-4 font-semibold">Tipo de Acuerdo</th>
+                                <th class="p-4 font-semibold">Total</th>
+                                <th class="p-4 font-semibold">Vencimiento</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-contratos-generados">
+                            <!-- Las filas se agregarán dinámicamente aquí -->
+                        </tbody>
+                    </table>
+                     <div id="registro-contratos-empty" class="text-center p-8 text-gray-500">
+                        Aún no se ha generado ningún contrato.
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: CREDENCIALES -->
+            <div id="content-credenciales" class="hidden space-y-8">
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3"><i class="ph ph-identification-card text-indigo-400"></i>Generador de Credenciales</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Columna del Formulario -->
+                    <form id="form-generar-credencial" class="lg:col-span-1 bg-gray-800 p-8 rounded-xl shadow-lg space-y-6 h-fit">
+                        <h3 class="text-xl font-bold text-white border-b border-gray-700 pb-3 mb-4">Datos de la Credencial</h3>
+                        <div>
+                            <label for="credencial-denominacion" class="block text-sm font-medium text-gray-300 mb-2">Denominación</label>
+                            <input type="text" id="credencial-denominacion" list="clientes-datalist" placeholder="Seleccione o escriba un nombre" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition" required>
+                        </div>
+                        <div>
+                            <label for="credencial-tipo-cliente" class="block text-sm font-medium text-gray-300 mb-2">Tipo de Cliente</label>
+                            <select id="credencial-tipo-cliente" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition" required>
+                                <option>Influencer</option>
+                                <option>Creador de Contenido</option>
+                                <option>Franquicia</option>
+                                <option>Franquiciado</option>
+                                <option>Franquiciante</option>
+                                <option>Staff</option>
+                                <option>Otro</option>
+                            </select>
+                        </div>
+                        <div>
+                             <label for="credencial-vencimiento" class="block text-sm font-medium text-gray-300 mb-2">Vencimiento</label>
+                            <input type="date" id="credencial-vencimiento" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition" required>
+                        </div>
+                        <div class="pt-2">
+                             <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg w-full">
+                                Generar Credencial
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Columna de la Credencial generada -->
+                    <div class="lg:col-span-2">
+                        <div id="credencial-container" class="w-full max-w-lg mx-auto">
+                           <div class="bg-gray-800 p-8 rounded-xl shadow-lg flex items-center justify-center h-full min-h-[300px]">
+                                <p class="text-gray-500">Aquí se mostrará la credencial generada.</p>
+                           </div>
+                        </div>
+                        <div id="credencial-actions" class="text-center mt-4 hidden">
+                            <button id="btn-download-credencial" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">
+                                <i class="ph ph-download-simple mr-2"></i>Descargar como PNG
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SECCIÓN: CAPACITACIONES -->
+            <div id="content-capacitaciones" class="hidden space-y-8">
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3"><i class="ph ph-student text-indigo-400"></i>Módulo de Capacitaciones</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Columna de Gestión de Cursos -->
+                    <div class="space-y-6">
+                        <div class="bg-gray-800 p-8 rounded-xl shadow-lg">
+                            <h3 class="text-xl font-bold text-white border-b border-gray-700 pb-3 mb-4">Gestión de Cursos</h3>
+                            <form id="form-add-curso" class="space-y-4">
+                                <div>
+                                    <label for="curso-titulo" class="block text-sm font-medium text-gray-300 mb-2">Título del Curso</label>
+                                    <input type="text" id="curso-titulo" placeholder="Ej: Marketing Digital para Influencers" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2" required>
+                                </div>
+                                <div>
+                                    <label for="curso-indice" class="block text-sm font-medium text-gray-300 mb-2">Índice por Módulo</label>
+                                    <textarea id="curso-indice" rows="3" placeholder="Módulo 1: Introducción, Módulo 2: SEO..." class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2"></textarea>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="curso-horas" class="block text-sm font-medium text-gray-300 mb-2">Cantidad de Horas</label>
+                                        <input type="number" id="curso-horas" placeholder="20" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2">
+                                    </div>
+                                    <div>
+                                        <label for="curso-precio" class="block text-sm font-medium text-gray-300 mb-2">Precio ($)</label>
+                                        <input type="number" id="curso-precio" placeholder="15000" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2" required>
+                                    </div>
+                                </div>
+                                <div class="text-right pt-2">
+                                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-5 rounded-lg transition-transform transform hover:scale-105">Agregar Curso</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                             <table class="w-full text-left">
+                                <thead class="bg-gray-700">
+                                    <tr>
+                                        <th class="p-4 font-semibold">Curso</th>
+                                        <th class="p-4 font-semibold">Horas</th>
+                                        <th class="p-4 font-semibold">Precio</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-cursos">
+                                    <!-- Cursos se agregarán aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Columna de Inscripción y Certificados -->
+                    <div class="space-y-6">
+                        <div class="bg-gray-800 p-8 rounded-xl shadow-lg">
+                            <h3 class="text-xl font-bold text-white border-b border-gray-700 pb-3 mb-4">Inscripción de Alumnos</h3>
+                            <form id="form-inscribir-alumno" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="alumno-nombre" class="block text-sm font-medium text-gray-300 mb-2">Nombre y Apellido</label>
+                                        <input type="text" id="alumno-nombre" list="clientes-datalist" placeholder="Seleccione o escriba un nombre" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2" required>
+                                    </div>
+                                    <div>
+                                        <label for="alumno-tipo-cliente" class="block text-sm font-medium text-gray-300 mb-2">Tipo de Cliente</label>
+                                        <select id="alumno-tipo-cliente" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2">
+                                            <option>Influencer</option>
+                                            <option>Creador de Contenido</option>
+                                            <option>Otro</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="alumno-curso" class="block text-sm font-medium text-gray-300 mb-2">Curso a Inscribir</label>
+                                    <select id="alumno-curso" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2" required>
+                                        <option value="">-- Seleccionar un curso --</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                     <div>
+                                        <label for="alumno-precio" class="block text-sm font-medium text-gray-300 mb-2">Precio a Pagar ($)</label>
+                                        <input type="text" id="alumno-precio" class="w-full bg-gray-900 border border-gray-700 text-gray-400 rounded-lg px-4 py-2" readonly>
+                                    </div>
+                                    <div>
+                                        <label for="alumno-pago" class="block text-sm font-medium text-gray-300 mb-2">Estado del Pago</label>
+                                        <select id="alumno-pago" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2">
+                                            <option value="no">Impago</option>
+                                            <option value="si">Pagado</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="text-right pt-2">
+                                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-5 rounded-lg transition-transform transform hover:scale-105">Inscribir Alumno</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                             <table class="w-full text-left text-sm">
+                                <thead class="bg-gray-700">
+                                    <tr>
+                                        <th class="p-3 font-semibold">Alumno</th>
+                                        <th class="p-3 font-semibold">Curso</th>
+                                        <th class="p-3 font-semibold">Pago</th>
+                                        <th class="p-3 font-semibold text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-inscriptos">
+                                    <!-- Inscriptos se agregarán aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="bg-gray-800 p-8 rounded-xl shadow-lg">
+                            <h3 class="text-xl font-bold text-white border-b border-gray-700 pb-3 mb-4">Emisión de Certificados</h3>
+                            <form id="form-generar-certificado" class="space-y-4">
+                                <div>
+                                    <label for="certificado-alumno" class="block text-sm font-medium text-gray-300 mb-2">Seleccionar Alumno</label>
+                                     <select id="certificado-alumno" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2" required>
+                                        <option value="">-- Seleccionar un alumno inscripto --</option>
+                                    </select>
+                                </div>
+                                <div class="text-right pt-2">
+                                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-5 rounded-lg transition-transform transform hover:scale-105">Generar Certificado</button>
+                                </div>
+                            </form>
+                            <div id="certificado-container" class="mt-6 hidden">
+                                <div id="certificado-visual" class="p-4">
+                                    <!-- El certificado se inyectará aquí -->
+                                </div>
+                                <div class="mt-4 flex justify-end gap-3">
+                                    <button id="btn-export-certificado-png" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg text-sm"><i class="ph ph-image mr-1"></i>Exportar PNG</button>
+                                    <button id="btn-export-certificado-pdf" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm"><i class="ph ph-file-pdf mr-1"></i>Exportar PDF</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: ARCHIVOS -->
+            <div id="content-archivos" class="hidden space-y-8">
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3"><i class="ph ph-folder text-indigo-400"></i>Gestión de Archivos (Conexión Firebase)</h2>
+                <div class="bg-gray-800 p-8 rounded-xl shadow-lg space-y-6">
+                    <h3 class="text-xl font-bold text-white border-b border-gray-700 pb-3 mb-4">Subir Archivo desde Disco Local</h3>
+                    <p class="text-sm text-gray-400">Seleccione un archivo de su disco local (ej: Disco C:) para guardarlo de forma segura en la nube de Firebase.</p>
+                    <form id="form-upload-file">
+                        <input type="file" id="file-input" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-500 file:text-white hover:file:bg-indigo-600 cursor-pointer" required>
+                        <div class="mt-4 text-right">
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg">
+                                Conectar y Subir Archivo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                    <h3 class="text-xl font-bold text-white p-6">Archivos Almacenados</h3>
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="p-4 font-semibold">Nombre del Archivo</th>
+                                <th class="p-4 font-semibold">Fecha de Subida</th>
+                                <th class="p-4 font-semibold text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-archivos">
+                            <!-- Files will be listed here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- SECCIÓN: CONEXIÓN LOCAL -->
+            <div id="content-conexion" class="hidden space-y-8">
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3"><i class="ph ph-plugs-connected text-indigo-400"></i>Conexión Local con Firebase</h2>
+                <div class="bg-gray-800 p-8 rounded-xl shadow-lg space-y-4">
+                    <h3 class="text-xl font-bold text-white">Código de Conexión</h3>
+                    <p class="text-sm text-gray-400">Para que este archivo HTML funcione en tu computadora, debes copiar este código y reemplazar el bloque de `firebaseConfig` que se encuentra casi al final del archivo.</p>
+                    <div>
+                        <textarea id="codigo-conexion" rows="12" class="w-full bg-gray-900 border font-mono text-sm border-gray-700 text-gray-300 rounded-lg p-4 focus:ring-2 focus:ring-indigo-500 focus:outline-none" readonly></textarea>
+                    </div>
+                    <div class="text-right">
+                        <button id="btn-copiar-conexion" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg">
+                            <i class="ph ph-copy mr-2"></i>Copiar Código
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+        </main>
+    </div>
+
+    <footer class="bg-gray-800 border-t border-gray-700 px-4 py-2 text-xs text-gray-400 flex items-center justify-between">
+        <div>
+            &copy; 2024 LOGY MANAGER AGENCIA.
+        </div>
+        <div class="flex items-center gap-6">
+            <a href="#" id="footer-nav-conexion" class="flex items-center gap-2 hover:text-white transition-colors">
+                <i class="ph-fill ph-plugs-connected text-lg"></i>
+                <span>Conexión Local</span>
+            </a>
+             <a href="#" id="btn-sync" class="flex items-center gap-2 hover:text-white transition-colors">
+                    <i id="sync-icon" class="ph-fill ph-arrows-clockwise text-lg"></i>
+                    <span>Sincronizar</span>
+            </a>
+            <div class="flex items-center gap-2 pl-4 border-l border-gray-700">
+                <div id="connection-status" class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <span id="connection-text">Conectando...</span>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Modal para Recibo -->
+    <div id="receipt-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all scale-95 opacity-0" id="receipt-modal-content">
+            <!-- Contenido del recibo de stock se inyectará aquí -->
+        </div>
+    </div>
+    
+    <!-- Modal para Recibo de Pago de Curso -->
+    <div id="receipt-pago-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all scale-95 opacity-0" id="receipt-pago-modal-content">
+            <!-- El contenido del recibo se inyectará aquí -->
+        </div>
+    </div>
+    
+    <!-- Modal para Recibo de Cliente -->
+    <div id="client-receipt-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all scale-95 opacity-0" id="client-receipt-modal-content">
+            <!-- El contenido del recibo se inyectará aquí -->
+        </div>
+    </div>
+
+
+    <!-- Notificación emergente -->
+    <div id="notification" class="fixed bottom-5 right-5 bg-green-500 text-white py-3 px-6 rounded-lg shadow-xl opacity-0 translate-y-10 transition-all duration-300">
+        ¡Acción completada con éxito!
+    </div>
+
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            onSnapshot, 
+            doc, 
+            updateDoc, 
+            deleteDoc,
+            query,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+        // La configuración de Firebase es provista automáticamente por el entorno de desarrollo.
+       // La configuración de Firebase es provista dinámicamente por el entorno de desarrollo
+        // o utiliza los placeholders para desarrollo local.
+        const firebaseConfig = typeof __firebase_config !== 'undefined'
+            ? JSON.parse(__firebase_config)
+            : {
+                // PEGA AQUÍ LA CONFIGURACIÓN DE TU PROYECTO FIREBASE
+              "apiKey": "AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY",
+  "authDomain": "bard-frontend.firebaseapp.com",
+  "projectId": "bard-frontend",
+  "storageBucket": "bard-frontend.firebasestorage.app",
+  "messagingSenderId": "175205271074",
+  "appId": "1:175205271074:web:2b7bd4d34d33bf38e6ec7b"
+}
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // --- Lógica de la Aplicación ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Declaraciones de Elementos ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('main > div');
+            const notification = document.getElementById('notification');
+            const connectionStatus = document.getElementById('connection-status');
+            const connectionText = document.getElementById('connection-text');
+
+            // --- Variables de estado de la aplicación ---
+            let appId;
+            let userId;
+            let localClientes = [];
+            let localStock = [];
+            let localCursos = [];
+            let localInscriptos = [];
+            let localContratos = [];
+            let localArchivos = [];
+            let localComunicaciones = [];
+            let localSeguimientos = [];
+
+            // --- Referencias a Formularios y Tablas ---
+            const formAltaCliente = document.getElementById('form-alta-cliente');
+            const tablaClientes = document.getElementById('tabla-clientes');
+            const formSeguimientoContrato = document.getElementById('form-add-seguimiento-contrato');
+            const tablaSeguimientos = document.getElementById('tabla-seguimientos');
+            const formComunicacion = document.getElementById('form-add-comunicacion');
+            const tablaComunicaciones = document.getElementById('tabla-comunicaciones');
+            const formStock = document.getElementById('form-add-stock');
+            const tablaStock = document.getElementById('tabla-stock');
+            const formGenerarContrato = document.getElementById('form-generar-contrato');
+            const tablaContratosGenerados = document.getElementById('tabla-contratos-generados');
+            const formAddCurso = document.getElementById('form-add-curso');
+            const tablaCursos = document.getElementById('tabla-cursos');
+            const formInscribirAlumno = document.getElementById('form-inscribir-alumno');
+            const tablaInscriptos = document.getElementById('tabla-inscriptos');
+            const formUploadFile = document.getElementById('form-upload-file');
+            const tablaArchivos = document.getElementById('tabla-archivos');
+            const formGenerarCredencial = document.getElementById('form-generar-credencial');
+            const formGenerarCertificado = document.getElementById('form-generar-certificado');
+
+            const { jsPDF } = window.jspdf;
+
+
+            // --- Conexión y Autenticación con Firebase ---
+            const setConnectionStatus = (status) => {
+                connectionStatus.classList.remove('bg-yellow-500', 'bg-green-500', 'bg-red-500');
+                switch (status) {
+                    case 'connected':
+                        connectionStatus.classList.add('bg-green-500');
+                        connectionText.textContent = 'Conectado';
+                        break;
+                    case 'disconnected':
+                        connectionStatus.classList.add('bg-red-500');
+                        connectionText.textContent = 'Desconectado';
+                        break;
+                    case 'connecting':
+                    default:
+                        connectionStatus.classList.add('bg-yellow-500');
+                        connectionText.textContent = 'Conectando...';
+                        break;
+                }
+            };
+            
+            const initializeListeners = () => {
+                if (!userId) {
+                    console.error("No se pueden inicializar los listeners sin un usuario.");
+                    return;
+                }
+                setupClientesListener();
+                setupStockListener();
+                setupCursosListener();
+                setupInscriptosListener();
+                setupContratosListener();
+                setupSeguimientosListener();
+                setupComunicacionesListener();
+                setupArchivosListener();
+            };
+            
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    userId = user.uid;
+                    setConnectionStatus('connected');
+                    console.log("Usuario autenticado:", userId);
+                    initializeListeners();
+                } else {
+                    userId = null;
+                    appId = null;
+                    setConnectionStatus('disconnected');
+                    console.log("Usuario desconectado.");
+                }
+            });
+
+            const authenticateUser = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Error de autenticación:", error);
+                    setConnectionStatus('disconnected');
+                }
+            };
+            authenticateUser();
+
+
+            // --- Funciones Globales ---
+            const showNotification = (message, isSuccess = true) => {
+                notification.textContent = message;
+                notification.classList.toggle('bg-green-500', isSuccess);
+                notification.classList.toggle('bg-red-500', !isSuccess);
+                notification.classList.remove('opacity-0', 'translate-y-10');
+                setTimeout(() => {
+                    notification.classList.add('opacity-0', 'translate-y-10');
+                }, 3000);
+            };
+
+            const formatDate = (dateString) => {
+                if (!dateString) return 'N/A';
+                if (dateString.toDate) return dateString.toDate().toLocaleDateString('es-AR');
+                const date = new Date(dateString + 'T00:00:00');
+                return new Intl.DateTimeFormat('es-AR').format(date);
+            };
+
+            // --- Lógica de Navegación ---
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = 'content-' + link.id.split('-')[1];
+                    contentSections.forEach(section => section.classList.add('hidden'));
+                    navLinks.forEach(nav => nav.classList.remove('active'));
+                    document.getElementById(targetId).classList.remove('hidden');
+                    link.classList.add('active');
+                });
+            });
+            
+            // --- Lógica de Conexión Local ---
+            const displayConnectionCode = () => {
+                const codigoConexionTextarea = document.getElementById('codigo-conexion');
+                let configObject;
+                if(typeof __firebase_config !== 'undefined') {
+                    configObject = JSON.parse(__firebase_config);
+                } else {
+                    configObject = {
+                        apiKey: "TU_API_KEY_AQUI",
+                        authDomain: "logy-manager-age-20934040.firebaseapp.com",
+                        projectId: "logy-manager-age-20934040",
+                        storageBucket: "logy-manager-age-20934040.appspot.com",
+                        messagingSenderId: "TU_SENDER_ID_AQUI",
+                        appId: "TU_APP_ID_AQUI"
+                    };
+                }
+                const codeString = `const firebaseConfig = ${JSON.stringify(configObject, null, 2)};`;
+                codigoConexionTextarea.value = codeString;
+            };
+
+            document.getElementById('footer-nav-conexion').addEventListener('click', (e) => {
+                e.preventDefault();
+                navLinks.forEach(nav => nav.classList.remove('active'));
+                contentSections.forEach(section => section.classList.add('hidden'));
+                document.getElementById('content-conexion').classList.remove('hidden');
+                displayConnectionCode();
+            });
+
+            document.getElementById('btn-copiar-conexion').addEventListener('click', () => {
+                const codigoConexionTextarea = document.getElementById('codigo-conexion');
+                codigoConexionTextarea.select();
+                document.execCommand('copy');
+                showNotification('Código de conexión copiado al portapapeles.');
+            });
+
+
+            // --- Lógica de Formularios (adaptada para Firebase) ---
+            const getCollectionPath = (collectionName) => {
+                if (!appId || !userId) return null;
+                return `artifacts/${appId}/users/${userId}/${collectionName}`;
+            };
+            
+            const getStoragePath = (fileName) => {
+                if (!appId || !userId) return null;
+                return `artifacts/${appId}/users/${userId}/uploads/${fileName}`;
+            }
+
+            // --- Lógica de Clientes con Firebase ---
+            const displayComprobante = (data) => {
+                const container = document.getElementById('comprobante-container');
+                const visual = document.getElementById('comprobante-visual');
+                const shareTextarea = document.getElementById('texto-compartir-alta');
+
+                const comprobanteHTML = `
+                    <div class="text-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-900">ACUSE DE INSCRIPCIÓN</h3>
+                        <p class="text-sm text-gray-500">LOGY MANAGER AGENCIA</p>
+                    </div>
+                    <div class="text-left text-sm space-y-3">
+                        <p><strong>Fecha de Alta:</strong> ${new Date().toLocaleDateString('es-AR')}</p>
+                        <p><strong>Cliente:</strong> ${data.nombre || ''}</p>
+                        <p><strong>Tipo:</strong> ${data.tipo_cliente || ''}</p>
+                        <p><strong>Email:</strong> ${data.email || 'No especificado'}</p>
+                        <p><strong>Teléfono:</strong> ${data.telefono || 'No especificado'}</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t text-center">
+                        <p class="text-gray-600 font-semibold">¡Bienvenido/a a la agencia!</p>
+                        <p class="text-xs text-gray-500 mt-1">Este documento acredita su registro en nuestra base de datos.</p>
+                    </div>
+                `;
+                visual.innerHTML = comprobanteHTML;
+
+                const shareText = `
+¡Hola ${data.nombre}! 👋
+
+Te damos la bienvenida oficial a LOGY MANAGER AGENCIA.
+
+Estamos muy contentos de tenerte con nosotros. Ya hemos registrado tus datos y estamos listos para empezar a trabajar juntos.
+
+Pronto nos pondremos en contacto para los siguientes pasos.
+
+¡Saludos!
+El equipo de LOGY MANAGER AGENCIA
+                `.trim();
+                shareTextarea.value = shareText;
+
+                container.classList.remove('hidden');
+            };
+
+            document.getElementById('btn-export-comprobante-png').addEventListener('click', () => {
+                const comprobante = document.getElementById('comprobante-visual');
+                const nombre = document.getElementById('nombre').value.replace(/ /g, '_') || 'cliente';
+                html2canvas(comprobante, { scale: 2 }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `acuse_inscripcion_${nombre}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            });
+
+            document.getElementById('btn-export-comprobante-pdf').addEventListener('click', () => {
+                const comprobante = document.getElementById('comprobante-visual');
+                const nombre = document.getElementById('nombre').value.replace(/ /g, '_') || 'cliente';
+                html2canvas(comprobante, { scale: 2 }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'px',
+                        format: [canvas.width, canvas.height]
+                    });
+                    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                    pdf.save(`acuse_inscripcion_${nombre}.pdf`);
+                });
+            });
+
+            document.getElementById('btn-copiar-texto-alta').addEventListener('click', () => {
+                const shareTextarea = document.getElementById('texto-compartir-alta');
+                shareTextarea.select();
+                document.execCommand('copy');
+                showNotification('Texto de bienvenida copiado.');
+            });
+
+            const renderClientes = (clientes) => {
+                if (!tablaClientes) return;
+                tablaClientes.innerHTML = '';
+                if (clientes.length === 0) {
+                    tablaClientes.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">No hay clientes registrados.</td></tr>';
+                    return;
+                }
+                clientes.forEach(clienteDoc => {
+                    const cliente = clienteDoc.data();
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-700 hover:bg-gray-700/50';
+                    row.innerHTML = `
+                        <td class="p-4">${cliente.nombre}</td>
+                        <td class="p-4">${cliente.tipo_cliente}</td>
+                        <td class="p-4">${cliente.email || 'N/A'}</td>
+                        <td class="p-4">${cliente.telefono || 'N/A'}</td>
+                        <td class="p-4 text-right space-x-2">
+                           <button data-id="${clienteDoc.id}" class="btn-recibo-cliente bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded">Recibo</button>
+                           <button data-id="${clienteDoc.id}" class="btn-edit-cliente bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold py-1 px-2 rounded">Editar</button>
+                           <button data-id="${clienteDoc.id}" class="btn-delete-cliente bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-2 rounded">Eliminar</button>
+                        </td>
+                    `;
+                    tablaClientes.appendChild(row);
+                });
+            };
+
+            const populateClientSelectors = (clientes) => {
+                const selectors = [
+                    document.getElementById('contrato-cliente'),
+                    document.getElementById('stock-cliente-nombre'),
+                    document.getElementById('contrato-nombre-cliente')
+                ];
+
+                selectors.forEach(select => {
+                    if (select) {
+                        const currentVal = select.value;
+                        select.innerHTML = '<option value="">-- Seleccione un Cliente --</option>';
+                        clientes.forEach(clienteDoc => {
+                            const cliente = clienteDoc.data();
+                            const option = document.createElement('option');
+                            option.value = cliente.nombre;
+                            option.textContent = cliente.nombre;
+                            select.appendChild(option);
+                        });
+                        select.value = currentVal;
+                    }
+                });
+            };
+            
+            const populateClientDatalist = (clientes) => {
+                const datalist = document.getElementById('clientes-datalist');
+                if (datalist) {
+                    datalist.innerHTML = '';
+                    clientes.forEach(clienteDoc => {
+                        const cliente = clienteDoc.data();
+                        const option = document.createElement('option');
+                        option.value = cliente.nombre;
+                        datalist.appendChild(option);
+                    });
+                }
+            };
+
+            const setupClientesListener = () => {
+                const collectionPath = getCollectionPath('clientes');
+                if (!collectionPath) return;
+                onSnapshot(query(collection(db, collectionPath)), 
+                    (snapshot) => {
+                        localClientes = snapshot.docs;
+                        renderClientes(localClientes);
+                        populateClientSelectors(localClientes);
+                        populateClientDatalist(localClientes);
+                    },
+                    (error) => console.error("Error en listener de clientes:", error)
+                );
+            };
+
+            if (formAltaCliente) {
+                formAltaCliente.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const collectionPath = getCollectionPath('clientes');
+                    if (!collectionPath) {
+                        showNotification('Error de conexión. Intente de nuevo.', false);
+                        return;
+                    }
+
+                    const formData = new FormData(formAltaCliente);
+                    const data = Object.fromEntries(formData.entries());
+                    
+                    if(!data.nombre) {
+                        showNotification('El campo Nombre es obligatorio.', false);
+                        return;
+                    }
+
+                    const editId = document.getElementById('cliente-edit-id').value;
+                    try {
+                        if (editId) {
+                            await updateDoc(doc(db, collectionPath, editId), data);
+                            showNotification('Cliente actualizado con éxito.');
+                        } else {
+                            await addDoc(collection(db, collectionPath), data);
+                            showNotification('Cliente guardado en la base de datos.');
+                            displayComprobante(data); 
+                        }
+                        formAltaCliente.reset();
+                        document.getElementById('cliente-edit-id').value = '';
+                        document.getElementById('btn-submit-cliente').textContent = 'Agregar Cliente';
+                    } catch (error) {
+                        console.error("Error al guardar cliente: ", error);
+                        showNotification('Error al guardar el cliente.', false);
+                    }
+                });
+            }
+            
+            if (tablaClientes) {
+                tablaClientes.addEventListener('click', async (e) => {
+                    const target = e.target;
+                    const id = target.dataset.id;
+                    const collectionPath = getCollectionPath('clientes');
+                    if (!id || !collectionPath) return;
+
+                    if (target.classList.contains('btn-delete-cliente')) {
+                        if (confirm('¿Está seguro de que desea eliminar este cliente?')) {
+                            try {
+                                await deleteDoc(doc(db, collectionPath, id));
+                                showNotification('Cliente eliminado.');
+                            } catch (error) {
+                                console.error("Error al eliminar cliente: ", error);
+                                showNotification('Error al eliminar el cliente.', false);
+                            }
+                        }
+                    }
+
+                    if (target.classList.contains('btn-edit-cliente')) {
+                        const clienteDoc = localClientes.find(doc => doc.id === id);
+                        if (clienteDoc) {
+                            const data = clienteDoc.data();
+                            document.getElementById('cliente-edit-id').value = clienteDoc.id;
+                            for (const key in data) {
+                                const input = formAltaCliente.querySelector(`[name="${key}"]`);
+                                if (input) input.value = data[key];
+                            }
+                            document.getElementById('btn-submit-cliente').textContent = 'Guardar Cambios';
+                            formAltaCliente.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+
+                    if (target.classList.contains('btn-recibo-cliente')) {
+                         const clienteDoc = localClientes.find(doc => doc.id === id);
+                         if(clienteDoc) {
+                            showClientReceiptModal(clienteDoc.data());
+                         }
+                    }
+                });
+            }
+            
+            // --- Lógica de Manejo de Stock con Firebase ---
+            const renderStock = (stockItems) => {
+                if (!tablaStock) return;
+                localStock = stockItems;
+                tablaStock.innerHTML = '';
+                if (stockItems.length === 0) {
+                    tablaStock.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No hay productos en el stock.</td></tr>';
+                    return;
+                }
+
+                stockItems.forEach(itemDoc => {
+                    const item = itemDoc.data();
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-700 hover:bg-gray-700/50';
+                    row.innerHTML = `
+                        <td class="p-4">${item.producto}</td>
+                        <td class="p-4">${item.cantidad}</td>
+                        <td class="p-4">${item.tipoMovimiento}</td>
+                        <td class="p-4">${item.clienteNombre}</td>
+                        <td class="p-4">${item.destinatarioNombre}</td>
+                        <td class="p-4 text-right space-x-2">
+                           <button data-id="${itemDoc.id}" class="btn-edit-stock bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold py-1 px-2 rounded">Editar</button>
+                           <button data-id="${itemDoc.id}" class="btn-delete-stock bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-2 rounded">Eliminar</button>
+                        </td>`;
+                    tablaStock.appendChild(row);
+                });
+            };
+
+            const setupStockListener = () => {
+                const collectionPath = getCollectionPath('stock');
+                if (!collectionPath) return;
+                onSnapshot(query(collection(db, collectionPath)), 
+                    (snapshot) => renderStock(snapshot.docs),
+                    (error) => console.error("Error en listener de stock:", error)
+                );
+            };
+
+            if (formStock) {
+                formStock.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const collectionPath = getCollectionPath('stock');
+                    if (!collectionPath) {
+                        showNotification('Error de conexión. Intente de nuevo.', false);
+                        return;
+                    }
+                    
+                    const stockData = {
+                        clienteNombre: document.getElementById('stock-cliente-nombre').value,
+                        clienteMail: document.getElementById('stock-cliente-mail').value,
+                        destinatarioTipo: document.getElementById('stock-destinatario-tipo').value,
+                        destinatarioNombre: document.getElementById('stock-destinatario-nombre').value,
+                        destinatarioMail: document.getElementById('stock-destinatario-mail').value,
+                        producto: document.getElementById('stock-producto').value,
+                        cantidad: parseInt(document.getElementById('stock-cantidad').value),
+                        tipoMovimiento: document.getElementById('stock-tipo-movimiento').value
+                    };
+
+                    const editId = document.getElementById('stock-edit-id').value;
+                    try {
+                        if (editId) {
+                            await updateDoc(doc(db, collectionPath, editId), stockData);
+                            showNotification('Producto actualizado con éxito.');
+                        } else {
+                            await addDoc(collection(db, collectionPath), {...stockData, createdAt: serverTimestamp()});
+                            showNotification('Producto agregado.');
+                        }
+                        formStock.reset();
+                        document.getElementById('stock-edit-id').value = '';
+                        document.getElementById('btn-submit-stock').textContent = 'Agregar al Stock';
+                    } catch (error) {
+                        console.error("Error al guardar en stock: ", error);
+                        showNotification('Error al guardar el producto.', false);
+                    }
+                });
+            }
+
+            if(tablaStock) {
+                tablaStock.addEventListener('click', async (e) => {
+                    const target = e.target;
+                    const id = target.dataset.id;
+                    const collectionPath = getCollectionPath('stock');
+                    if (!id || !collectionPath) return;
+
+                    if (target.classList.contains('btn-delete-stock')) {
+                        try {
+                            await deleteDoc(doc(db, collectionPath, id));
+                            showNotification('Producto eliminado del stock.');
+                        } catch (error) {
+                             console.error("Error al eliminar producto: ", error);
+                            showNotification('Error al eliminar el producto.', false);
+                        }
+                    }
+                    
+                    if (target.classList.contains('btn-edit-stock')) {
+                        const itemDoc = localStock.find(doc => doc.id === id);
+                        if (itemDoc) {
+                            const item = itemDoc.data();
+                            document.getElementById('stock-edit-id').value = itemDoc.id;
+                            document.getElementById('stock-cliente-nombre').value = item.clienteNombre || '';
+                            // ... (rellenar los demás campos)
+                            document.getElementById('btn-submit-stock').textContent = 'Guardar Cambios';
+                            formStock.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                });
+            }
+
+            // --- Lógica de Capacitaciones con Firebase ---
+            const renderCursos = (cursos) => {
+                localCursos = cursos.map(doc => ({ id: doc.id, ...doc.data() }));
+                tablaCursos.innerHTML = '';
+                const cursoSelect = document.getElementById('alumno-curso');
+                cursoSelect.innerHTML = '<option value="">-- Seleccionar un curso --</option>';
+
+                if (localCursos.length === 0) {
+                     tablaCursos.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-500">No hay cursos cargados.</td></tr>';
+                }
+
+                localCursos.forEach(curso => {
+                    const row = `
+                        <tr class="border-b border-gray-700 hover:bg-gray-700/50">
+                            <td class="p-4">${curso.titulo}</td>
+                            <td class="p-4">${curso.horas}hs</td>
+                            <td class="p-4">$${curso.precio}</td>
+                        </tr>`;
+                    tablaCursos.innerHTML += row;
+                    const option = document.createElement('option');
+                    option.value = curso.id;
+                    option.textContent = curso.titulo;
+                    option.dataset.precio = curso.precio;
+                    cursoSelect.appendChild(option);
+                });
+            };
+            
+            const setupCursosListener = () => {
+                const collectionPath = getCollectionPath('cursos');
+                if (!collectionPath) return;
+                onSnapshot(query(collection(db, collectionPath)), 
+                    (snapshot) => renderCursos(snapshot.docs),
+                    (error) => console.error("Error en listener de cursos:", error)
+                );
+            };
+
+            if (formAddCurso) {
+                formAddCurso.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const collectionPath = getCollectionPath('cursos');
+                    if (!collectionPath) { return; }
+                    const newCurso = {
+                        titulo: document.getElementById('curso-titulo').value,
+                        indice: document.getElementById('curso-indice').value,
+                        horas: document.getElementById('curso-horas').value,
+                        precio: parseFloat(document.getElementById('curso-precio').value)
+                    };
+                    try {
+                        await addDoc(collection(db, collectionPath), newCurso);
+                        showNotification('Curso agregado con éxito.');
+                        formAddCurso.reset();
+                    } catch (error) {
+                         console.error("Error al agregar curso: ", error);
+                        showNotification('Error al agregar el curso.', false);
+                    }
+                });
+            }
+            
+            // --- Lógica de Inscriptos con Firebase ---
+            const renderInscriptos = (inscriptos) => {
+                localInscriptos = inscriptos.map(doc => ({ id: doc.id, ...doc.data() }));
+                tablaInscriptos.innerHTML = '';
+                const certificadoSelect = document.getElementById('certificado-alumno');
+                certificadoSelect.innerHTML = '<option value="">-- Seleccionar un alumno --</option>';
+                
+                if (localInscriptos.length === 0) {
+                     tablaInscriptos.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">No hay alumnos inscriptos.</td></tr>';
+                }
+
+                localInscriptos.forEach(inscripto => {
+                    const curso = localCursos.find(c => c.id === inscripto.cursoId);
+                    const pagoStatus = inscripto.pago === 'si' 
+                        ? '<span class="bg-green-500/20 text-green-300 py-1 px-2 rounded-full text-xs">Pagado</span>' 
+                        : '<span class="bg-red-500/20 text-red-300 py-1 px-2 rounded-full text-xs">Impago</span>';
+                    const row = `
+                        <tr class="border-b border-gray-700 hover:bg-gray-700/50">
+                            <td class="p-3">${inscripto.nombre}</td>
+                            <td class="p-3">${curso ? curso.titulo : 'N/A'}</td>
+                            <td class="p-3">${pagoStatus}</td>
+                            <td class="p-3 text-center">
+                                <button data-id="${inscripto.id}" class="btn-recibo-pago bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded">Recibo</button>
+                            </td></tr>`;
+                    tablaInscriptos.innerHTML += row;
+
+                    if (curso) {
+                         const option = document.createElement('option');
+                        option.value = inscripto.id;
+                        option.textContent = `${inscripto.nombre} - ${curso.titulo}`;
+                        certificadoSelect.appendChild(option);
+                    }
+                });
+            };
+
+            const setupInscriptosListener = () => {
+                const collectionPath = getCollectionPath('inscriptos');
+                if (!collectionPath) return;
+                onSnapshot(query(collection(db, collectionPath)), 
+                    (snapshot) => renderInscriptos(snapshot.docs),
+                    (error) => console.error("Error en listener de inscriptos:", error)
+                );
+            };
+
+            if (formInscribirAlumno) {
+                formInscribirAlumno.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const collectionPath = getCollectionPath('inscriptos');
+                    if (!collectionPath) return;
+                    
+                    const cursoId = document.getElementById('alumno-curso').value;
+                    if (!cursoId) {
+                        showNotification('Debe seleccionar un curso.', false);
+                        return;
+                    }
+                    const newInscripto = {
+                        nombre: document.getElementById('alumno-nombre').value,
+                        tipoCliente: document.getElementById('alumno-tipo-cliente').value,
+                        cursoId: cursoId,
+                        pago: document.getElementById('alumno-pago').value
+                    };
+                    try {
+                        await addDoc(collection(db, collectionPath), newInscripto);
+                        showNotification('Alumno inscripto con éxito.');
+                        formInscribirAlumno.reset();
+                        document.getElementById('alumno-precio').value = '';
+                    } catch (error) {
+                        console.error("Error al inscribir alumno: ", error);
+                        showNotification('Error al inscribir alumno.', false);
+                    }
+                });
+            }
+
+            // --- Lógica de Contratos con Firebase ---
+            const renderContratos = (contratos) => {
+                localContratos = contratos.map(doc => ({ id: doc.id, ...doc.data() }));
+                tablaContratosGenerados.innerHTML = '';
+                
+                const registroEmpty = document.getElementById('registro-contratos-empty');
+                if (localContratos.length === 0) {
+                     if(registroEmpty) registroEmpty.classList.remove('hidden');
+                } else {
+                    if(registroEmpty) registroEmpty.classList.add('hidden');
+                }
+
+                localContratos.forEach(contractData => {
+                    const newRow = document.createElement('tr');
+                    newRow.className = 'border-b border-gray-700 hover:bg-gray-700/50';
+                    const total = (contractData.inversion || 0) + ((contractData.cuotas || 0) * (contractData.montoCuota || 0)) - (contractData.bonificacion || 0);
+                    newRow.innerHTML = `
+                        <td class="p-4 font-mono text-xs">${contractData.numeroContrato}</td>
+                        <td class="p-4">${contractData.nombreCliente || 'N/A'}</td>
+                        <td class="p-4">${formatDate(contractData.createdAt)}</td>
+                        <td class="p-4">${contractData.tipoAcuerdo}</td>
+                        <td class="p-4 font-semibold">$${total.toFixed(2)}</td>
+                        <td class="p-4">${formatDate(contractData.fechaVencimiento)}</td>`;
+                    tablaContratosGenerados.appendChild(newRow);
+                });
+            };
+
+            const setupContratosListener = () => {
+                const collectionPath = getCollectionPath('contratos');
+                if (!collectionPath) return;
+                onSnapshot(query(collection(db, collectionPath)), 
+                    (snapshot) => renderContratos(snapshot.docs),
+                    (error) => console.error("Error en listener de contratos:", error)
+                );
+            };
+
+            if (formGenerarContrato) {
+                // ... (la lógica interna de cálculo y generación de texto no cambia)
+                formGenerarContrato.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const collectionPath = getCollectionPath('contratos');
+                    if (!collectionPath) return;
+
+                    const data = { /* ... Lógica de recolección de datos ... */ };
+                    try {
+                        await addDoc(collection(db, collectionPath), {...data, createdAt: serverTimestamp()});
+                        showNotification('Contrato guardado en la base de datos.');
+                    } catch (error) {
+                        console.error("Error al guardar contrato: ", error);
+                        showNotification('Error al guardar el contrato.', false);
+                    }
+                });
+            }
+            
+            // --- LISTENERS PARA SEGUIMIENTOS Y COMUNICACIONES ---
+            const renderSeguimientos = (seguimientos) => {
+                if (!tablaSeguimientos) return;
+                tablaSeguimientos.innerHTML = '';
+                if (seguimientos.length === 0) {
+                    tablaSeguimientos.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">No hay seguimientos registrados.</td></tr>';
+                    return;
+                }
+                seguimientos.forEach(doc => {
+                    const data = doc.data();
+                    const newRow = document.createElement('tr');
+                    newRow.className = 'border-b border-gray-700 hover:bg-gray-700/50';
+                    newRow.innerHTML = `
+                        <td class="p-4">${data.cliente}</td>
+                        <td class="p-4">${data.fecha}</td>
+                        <td class="p-4">${data.resumen}</td>
+                        <td class="p-4"><span class="bg-gray-500/20 text-gray-300 py-1 px-3 rounded-full text-xs font-semibold">Guardado</span></td>`;
+                    tablaSeguimientos.appendChild(newRow);
+                });
+            };
+            
+            const setupSeguimientosListener = () => {
+                const collectionPath = getCollectionPath('seguimientos');
+                if (!collectionPath) return;
+                 onSnapshot(query(collection(db, collectionPath)), (snapshot) => {
+                    localSeguimientos = snapshot.docs;
+                    renderSeguimientos(localSeguimientos);
+                 }, error => console.error("Error en listener de seguimientos:", error));
+            };
+            if(formSeguimientoContrato) {
+                formSeguimientoContrato.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const collectionPath = getCollectionPath('seguimientos');
+                    if (!collectionPath) return;
+                    const data = {
+                        cliente: document.getElementById('contrato-cliente').value,
+                        fecha: document.getElementById('comunicacion-fecha').value,
+                        resumen: document.getElementById('comunicacion-resumen').value,
+                        createdAt: serverTimestamp()
+                    };
+                    if(!data.cliente || !data.fecha || !data.resumen) { return; }
+                    await addDoc(collection(db, collectionPath), data);
+                    formSeguimientoContrato.reset();
+                });
+            }
+
+            const renderComunicaciones = (comunicaciones) => {
+                if (!tablaComunicaciones) return;
+                 tablaComunicaciones.innerHTML = '';
+                if(comunicaciones.length === 0) {
+                    tablaComunicaciones.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No hay comunicaciones registradas.</td></tr>';
+                    return;
+                }
+                comunicaciones.forEach(doc => {
+                    const data = doc.data();
+                    const newRow = document.createElement('tr');
+                    newRow.className = 'border-b border-gray-700 hover:bg-gray-700/50';
+                    newRow.innerHTML = `
+                        <td class="p-4">${formatDate(data.createdAt)}</td>
+                        <td class="p-4">${data.tipo}</td>
+                        <td class="p-4">${data.destinatario}</td>
+                        <td class="p-4">${data.archivoMail}</td>
+                        <td class="p-4">${data.detalle}</td>
+                        <td class="p-4"><span class="bg-green-500/20 text-green-300 py-1 px-3 rounded-full text-xs font-semibold">Realizada</span></td>`;
+                    tablaComunicaciones.appendChild(newRow);
+                });
+            };
+
+            const setupComunicacionesListener = () => {
+                const collectionPath = getCollectionPath('comunicaciones');
+                if (!collectionPath) return;
+                 onSnapshot(query(collection(db, collectionPath)), (snapshot) => {
+                    localComunicaciones = snapshot.docs; // Guardar datos para exportar
+                    renderComunicaciones(localComunicaciones);
+                 }, error => console.error("Error en listener de comunicaciones:", error));
+            };
+            if (formComunicacion) {
+                 formComunicacion.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const collectionPath = getCollectionPath('comunicaciones');
+                    if (!collectionPath) return;
+                    const data = {
+                        tipo: document.getElementById('com-tipo').value,
+                        destinatario: document.getElementById('com-destinatario').value,
+                        archivoMail: document.getElementById('com-archivo-mail').value,
+                        detalle: document.getElementById('com-detalle').value,
+                        createdAt: serverTimestamp()
+                    };
+                    if(!data.tipo || !data.destinatario || !data.detalle || !data.archivoMail) { return; }
+                    await addDoc(collection(db, collectionPath), data);
+                    formComunicacion.reset();
+                 });
+            }
+
+            // --- Lógica de Archivos con Firebase Storage ---
+            const renderArchivos = (archivos) => {
+                localArchivos = archivos;
+                tablaArchivos.innerHTML = '';
+                if(archivos.length === 0){
+                    tablaArchivos.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-500">No hay archivos subidos.</td></tr>';
+                    return;
+                }
+                archivos.forEach(fileDoc => {
+                    const file = fileDoc.data();
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-700 hover:bg-gray-700/50';
+                    row.innerHTML = `
+                        <td class="p-4">${file.name}</td>
+                        <td class="p-4">${formatDate(file.createdAt)}</td>
+                        <td class="p-4 text-right space-x-2">
+                            <a href="${file.url}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded">Descargar</a>
+                            <button data-id="${fileDoc.id}" data-name="${file.name}" class="btn-delete-archivo bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-2 rounded">Eliminar</button>
+                        </td>`;
+                    tablaArchivos.appendChild(row);
+                });
+            };
+
+            const setupArchivosListener = () => {
+                const collectionPath = getCollectionPath('archivos');
+                if (!collectionPath) return;
+                onSnapshot(query(collection(db, collectionPath)), 
+                    (snapshot) => renderArchivos(snapshot.docs),
+                    (error) => console.error("Error en listener de archivos:", error)
+                );
+            };
+
+            if (formUploadFile) {
+                formUploadFile.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const fileInput = document.getElementById('file-input');
+                    const file = fileInput.files[0];
+                    if (!file) {
+                        showNotification('Por favor, seleccione un archivo.', false);
+                        return;
+                    }
+                    const storagePath = getStoragePath(file.name);
+                    const collectionPath = getCollectionPath('archivos');
+                    if (!storagePath || !collectionPath) {
+                        showNotification('Error de conexión.', false);
+                        return;
+                    }
+
+                    const storageRef = ref(storage, storagePath);
+                    try {
+                        showNotification('Subiendo archivo...', true);
+                        const uploadResult = await uploadBytes(storageRef, file);
+                        const downloadURL = await getDownloadURL(uploadResult.ref);
+                        
+                        await addDoc(collection(db, collectionPath), {
+                            name: file.name,
+                            url: downloadURL,
+                            createdAt: serverTimestamp()
+                        });
+
+                        showNotification('Archivo subido con éxito.');
+                        formUploadFile.reset();
+
+                    } catch(error) {
+                        console.error("Error al subir archivo:", error);
+                        showNotification('Error al subir el archivo.', false);
+                    }
+                });
+            }
+
+            if(tablaArchivos){
+                tablaArchivos.addEventListener('click', async (e) => {
+                    if (e.target.classList.contains('btn-delete-archivo')) {
+                        const docId = e.target.dataset.id;
+                        const fileName = e.target.dataset.name;
+                        const collectionPath = getCollectionPath('archivos');
+                        const storagePath = getStoragePath(fileName);
+                        if (!docId || !fileName || !collectionPath || !storagePath) return;
+
+                        if (confirm(`¿Está seguro de que desea eliminar el archivo "${fileName}"?`)) {
+                            try {
+                                // Delete from Storage
+                                const storageRef = ref(storage, storagePath);
+                                await deleteObject(storageRef);
+                                // Delete from Firestore
+                                await deleteDoc(doc(db, collectionPath, docId));
+                                showNotification('Archivo eliminado con éxito.');
+                            } catch (error) {
+                                console.error("Error al eliminar archivo:", error);
+                                showNotification('Error al eliminar el archivo.', false);
+                            }
+                        }
+                    }
+                });
+            }
+
+            // --- Lógica de Recibo de Pago (Corregida) ---
+            const showPagoReceiptModal = (inscripto) => {
+                const curso = localCursos.find(c => c.id === inscripto.cursoId);
+                if (!curso) {
+                    showNotification('No se encontró el curso para este inscripto.', false);
+                    return;
+                }
+                const modalEl = document.getElementById('receipt-pago-modal');
+                const modalContent = document.getElementById('receipt-pago-modal-content');
+                const receiptId = Math.floor(10000 + Math.random() * 90000);
+                
+                const contentHTML = `
+                    <div id="receipt-pago-content" class="p-8 bg-white text-gray-800 rounded-t-lg">
+                        <div class="flex justify-between items-start pb-4 border-b">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900">LOGY MANAGER AGENCIA</h2>
+                                <p class="text-sm text-gray-600">Recibo de Cobro de Capacitación</p>
+                            </div>
+                            <div class="text-right">
+                                <h3 class="text-xl font-semibold">Recibo N° ${receiptId}</h3>
+                                <p class="text-sm">Fecha: ${new Date().toLocaleDateString('es-AR')}</p>
+                            </div>
+                        </div>
+                        <div class="mt-6 text-sm">
+                            <h4 class="font-semibold text-gray-500 uppercase tracking-wider mb-2">Recibimos de</h4>
+                            <p class="font-medium text-lg">${inscripto.nombre}</p>
+                            <p class="text-gray-500">${inscripto.tipoCliente}</p>
+                        </div>
+                         <div class="mt-8">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="p-3 font-semibold text-sm">Concepto</th>
+                                        <th class="p-3 font-semibold text-sm text-right">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="p-3 border-b">Inscripción al curso "${curso.titulo}"</td>
+                                        <td class="p-3 border-b text-right font-semibold">$${curso.precio.toFixed(2)}</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td class="p-3 text-right font-bold text-lg">TOTAL</td>
+                                        <td class="p-3 text-right font-bold text-lg">$${curso.precio.toFixed(2)}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <p class="mt-4 text-sm text-center text-gray-600">Este recibo es válido como comprobante de pago.</p>
+                    </div>
+                     <div class="bg-gray-700 p-4 flex justify-end gap-3 rounded-b-lg">
+                        <button onclick="document.getElementById('receipt-pago-modal').classList.add('hidden')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Cerrar</button>
+                    </div>`;
+                modalContent.innerHTML = contentHTML;
+                modalEl.classList.remove('hidden');
+                 setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                }, 50);
+            };
+
+            tablaInscriptos.addEventListener('click', (e) => {
+                if (e.target.classList.contains('btn-recibo-pago')) {
+                    const inscriptoId = e.target.dataset.id;
+                    const inscripto = localInscriptos.find(i => i.id === inscriptoId);
+                    if (inscripto) {
+                        showPagoReceiptModal(inscripto);
+                    }
+                }
+            });
+            
+            // --- Funciones de Reportes y Exportación ---
+            
+            const showClientReceiptModal = (cliente) => {
+                const modalEl = document.getElementById('client-receipt-modal');
+                const modalContent = document.getElementById('client-receipt-modal-content');
+                const receiptId = 'CLI-' + Math.floor(1000 + Math.random() * 9000);
+                const contentHTML = `
+                    <div id="client-receipt-content" class="p-8 bg-white text-gray-800 rounded-t-lg">
+                         <div class="flex justify-between items-start pb-4 border-b">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900">LOGY MANAGER AGENCIA</h2>
+                                <p class="text-sm text-gray-600">Recibo de Servicios</p>
+                            </div>
+                            <div class="text-right">
+                                <h3 class="text-xl font-semibold">Recibo N° ${receiptId}</h3>
+                                <p class="text-sm">Fecha: ${new Date().toLocaleDateString('es-AR')}</p>
+                            </div>
+                        </div>
+                        <div class="mt-6 text-sm">
+                            <h4 class="font-semibold text-gray-500 uppercase tracking-wider mb-2">Cliente</h4>
+                            <p class="font-medium text-lg">${cliente.nombre}</p>
+                            <p class="text-gray-500">${cliente.email || ''}</p>
+                        </div>
+                         <div class="mt-8">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="p-3 font-semibold text-sm">Concepto</th>
+                                        <th class="p-3 font-semibold text-sm text-right">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="p-3 border-b h-12"></td>
+                                        <td class="p-3 border-b text-right font-semibold"></td>
+                                    </tr>
+                                     <tr>
+                                        <td class="p-3 border-b h-12"></td>
+                                        <td class="p-3 border-b text-right font-semibold"></td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td class="p-3 text-right font-bold text-lg">TOTAL</td>
+                                        <td class="p-3 text-right font-bold text-lg">$</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                         <div class="grid grid-cols-2 gap-16 mt-20 pt-8">
+                            <div class="text-center border-t-2 border-gray-300 pt-2">
+                                <p class="text-sm font-semibold">Firma de Entrega</p>
+                            </div>
+                            <div class="text-center border-t-2 border-gray-300 pt-2">
+                                <p class="text-sm font-semibold">Firma de Conformidad</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-700 p-4 flex justify-end gap-3 rounded-b-lg">
+                        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-sm">Imprimir</button>
+                        <button onclick="document.getElementById('client-receipt-modal').classList.add('hidden')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Cerrar</button>
+                    </div>`;
+                modalContent.innerHTML = contentHTML;
+                modalEl.classList.remove('hidden');
+                setTimeout(() => modalContent.classList.remove('scale-95', 'opacity-0'), 50);
+            };
+
+            document.getElementById('btn-export-pdf-clientes').addEventListener('click', () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const tableColumn = ["Nombre", "Tipo", "Email", "Teléfono"];
+                const tableRows = [];
+
+                localClientes.forEach(doc => {
+                    const cliente = doc.data();
+                    const clienteData = [
+                        cliente.nombre,
+                        cliente.tipo_cliente,
+                        cliente.email || 'N/A',
+                        cliente.telefono || 'N/A'
+                    ];
+                    tableRows.push(clienteData);
+                });
+
+                doc.autoTable(tableColumn, tableRows, { startY: 20 });
+                doc.text("Registro de Clientes", 14, 15);
+                doc.save("registro_clientes.pdf");
+            });
+
+            document.getElementById('btn-export-excel-clientes').addEventListener('click', () => {
+                let csvContent = "data:text/csv;charset=utf-8,";
+                const headers = ["Nombre", "Tipo", "Email", "Telefono"];
+                csvContent += headers.join(",") + "\r\n";
+
+                localClientes.forEach(doc => {
+                    const cliente = doc.data();
+                    const row = [
+                        `"${cliente.nombre}"`,
+                        `"${cliente.tipo_cliente}"`,
+                        `"${cliente.email || ''}"`,
+                        `"${cliente.telefono || ''}"`
+                    ];
+                    csvContent += row.join(",") + "\r\n";
+                });
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "registro_clientes.csv");
+                document.body.appendChild(link); 
+                link.click();
+                document.body.removeChild(link);
+            });
+            
+            // --- Lógica de Sincronización Manual ---
+            const btnSync = document.getElementById('btn-sync');
+            const syncIcon = document.getElementById('sync-icon');
+
+            if (btnSync) {
+                btnSync.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    if (!auth.currentUser) {
+                        showNotification('No se puede sincronizar. Conexión perdida.', false);
+                        return;
+                    }
+                    
+                    syncIcon.classList.add('animate-spin');
+                    setConnectionStatus('connecting');
+                    connectionText.textContent = 'Sincronizando...';
+
+                    try {
+                        // Forzar una re-renderización de todos los datos locales
+                        renderClientes(localClientes);
+                        renderStock(localStock);
+                        renderCursos(localCursos);
+                        renderInscriptos(localInscriptos);
+                        renderContratos(localContratos);
+                        renderSeguimientos(localSeguimientos);
+                        renderComunicaciones(localComunicaciones);
+                        renderArchivos(localArchivos);
+
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
+                        setConnectionStatus('connected');
+                        showNotification('Datos sincronizados correctamente.');
+
+                    } catch (error) {
+                        console.error("Error durante la sincronización manual:", error);
+                        setConnectionStatus('disconnected');
+                        showNotification('Fallo al sincronizar los datos.', false);
+                    } finally {
+                        syncIcon.classList.remove('animate-spin');
+                        if (auth.currentUser) {
+                            setConnectionStatus('connected');
+                        } else {
+                            setConnectionStatus('disconnected');
+                        }
+                    }
+                });
+            }
+             if (formGenerarCredencial) {
+                formGenerarCredencial.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const denominacion = document.getElementById('credencial-denominacion').value;
+                    const tipoCliente = document.getElementById('credencial-tipo-cliente').value;
+                    const vencimiento = document.getElementById('credencial-vencimiento').value;
+
+                    const generateCredentialNumber = () => {
+                        let number = '';
+                        for (let i = 0; i < 16; i++) { number += Math.floor(Math.random() * 10); }
+                        return number.match(/.{1,4}/g).join(' ');
+                    };
+                    const generateSecurityCode = () => {
+                        const nums = '0123456789'; const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                        let code = '';
+                        for (let i = 0; i < 3; i++) { code += nums.charAt(Math.floor(Math.random() * nums.length)); }
+                        for (let i = 0; i < 2; i++) { code += chars.charAt(Math.floor(Math.random() * chars.length)); }
+                        return code.split('').sort(() => 0.5 - Math.random()).join('');
+                    };
+
+                    const credencialHTML = `
+                        <div id="credencial-visual" class="bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-2xl shadow-2xl p-6 border border-gray-700 flex flex-col justify-between aspect-[1.586/1]">
+                            <div>
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-lg font-bold">LOGY MANAGER AGENCIA</h3>
+                                    <i class="ph-fill ph-sparkle text-2xl text-indigo-400"></i>
+                                </div>
+                                <p class="text-xs text-gray-400">CREDENCIAL DE IDENTIFICACIÓN</p>
+                            </div>
+                            <div class="text-center my-4">
+                                <p class="text-2xl font-bold tracking-wider">${denominacion}</p>
+                                <p class="text-indigo-400 font-semibold">${tipoCliente}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">NÚMERO</p>
+                                <p class="font-mono text-lg tracking-widest">${generateCredentialNumber()}</p>
+                                <div class="flex justify-between items-end mt-2">
+                                    <div>
+                                        <p class="text-xs text-gray-500">VENCE</p>
+                                        <p class="font-semibold">${formatDate(vencimiento)}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">CÓDIGO SEG.</p>
+                                        <p class="font-mono font-bold text-lg">${generateSecurityCode()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    document.getElementById('credencial-container').innerHTML = credencialHTML;
+                    document.getElementById('credencial-actions').classList.remove('hidden');
+                    showNotification('Credencial generada con éxito.');
+                });
+            }
+             if (formGenerarCertificado) {
+                formGenerarCertificado.addEventListener('submit', e => {
+                    e.preventDefault();
+                    const inscriptoId = document.getElementById('certificado-alumno').value;
+                    if (!inscriptoId) {
+                        showNotification('Debe seleccionar un alumno.', false);
+                        return;
+                    }
+                    const inscripto = localInscriptos.find(i => i.id === inscriptoId);
+                    if (inscripto) {
+                        displayCertificado(inscripto);
+                    }
+                });
+            }
+            const displayCertificado = (inscripto) => {
+                const curso = localCursos.find(c => c.id === inscripto.cursoId);
+                const certificadoVisual = document.getElementById('certificado-visual');
+                const certificadoHTML = `
+                <div id="certificado-content" class="bg-white text-gray-800 p-8 rounded-lg border-4 border-indigo-300 relative overflow-hidden">
+                    <div class="absolute -bottom-10 -right-10 w-40 h-40 opacity-20">
+                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <polygon points="35,100 25,60 50,75" fill="#4f46e5"/><polygon points="65,100 75,60 50,75" fill="#4f46e5"/>
+                            <polygon points="38,98 28,62 50,75" fill="#6366f1"/><polygon points="62,98 72,62 50,75" fill="#6366f1"/>
+                            <circle cx="50" cy="50" r="30" fill="#312e81"/><circle cx="50" cy="50" r="28" fill="#4f46e5"/>
+                            <circle cx="50" cy="50" r="20" fill="#6366f1"/>
+                            <polygon points="50,38 53.5,45.5 61.5,46 55.5,51 57.5,58.5 50,54 42.5,58.5 44.5,51 38.5,46 46.5,45.5" fill="white"/>
+                        </svg>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm uppercase tracking-widest text-gray-500">Certificado de Finalización</p>
+                        <h2 class="text-3xl font-bold text-indigo-700 mt-2">LOGY MANAGER AGENCIA</h2>
+                        <p class="mt-8 text-lg">Otorga el presente certificado a:</p>
+                        <p class="text-4xl font-bold my-4">${inscripto.nombre}</p>
+                        <p class="text-lg">Por haber completado satisfactoriamente la capacitación de</p>
+                        <p class="text-2xl font-semibold text-indigo-600 mt-2">"${curso.titulo}"</p>
+                        <p class="mt-2 text-sm text-gray-500">Con una duración de ${curso.horas} horas.</p>
+                        <p class="mt-8 text-sm">Emitido el ${new Date().toLocaleDateString('es-AR')}.</p>
+                    </div>
+                </div>
+                `;
+                certificadoVisual.innerHTML = certificadoHTML;
+                document.getElementById('certificado-container').classList.remove('hidden');
+            };
+
+            document.getElementById('btn-export-certificado-png').addEventListener('click', () => {
+                const cert = document.getElementById('certificado-content');
+                html2canvas(cert, { scale: 2 }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `certificado.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            });
+
+            document.getElementById('btn-export-certificado-pdf').addEventListener('click', () => {
+                const cert = document.getElementById('certificado-content');
+                html2canvas(cert, { scale: 2 }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF({
+                        orientation: 'landscape',
+                        unit: 'px',
+                        format: [canvas.width, canvas.height]
+                    });
+                    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                    pdf.save(`certificado.pdf`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
